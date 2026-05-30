@@ -16,7 +16,9 @@ import investorMock from './mocks/investor.json'
 import dealsMock from './mocks/deals.json'
 import routepilotMock from './mocks/routepilot.json'
 
-export const USE_MOCKS = true
+// Mocks by default so the app runs standalone (no backend / API key needed).
+// At demo time, run the backend and set VITE_USE_MOCKS=false to go live.
+export const USE_MOCKS = import.meta.env.VITE_USE_MOCKS !== 'false'
 export const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 
 const DEAL_ID = 'routepilot'
