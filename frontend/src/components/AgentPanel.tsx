@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { askAgent, createTicket } from '../api'
 import type { AskResponse, TicketCreateResponse } from '../types'
 import { VoiceCall } from './VoiceCall'
+import { useVoice } from '../hooks/useVoice'
 
 type Tab = 'chat' | 'voice'
 
@@ -28,38 +29,55 @@ export function AgentPanel({ open, onClose }: { open: boolean; onClose: () => vo
   const [loading, setLoading] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
 
+  const sendRef = useRef<(message: string) => Promise<void>>(async () => {})
+
+  const voice = useVoice({
+    onTranscript: (text) => {
+      // When the user finishes speaking, pipe the transcript straight into send().
+      void sendRef.current(text)
+    },
+  })
+
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
   }, [items, loading])
 
-  async function send(message: string) {
-    const text = message.trim()
-    if (!text || loading) return
-    setInput('')
-    setItems((prev) => [...prev, { role: 'user', text }])
-    setLoading(true)
-    try {
-      const res = await askAgent(text)
-      setItems((prev) => [...prev, { role: 'agent', res, ticket: { status: 'idle' } }])
-    } catch {
-      setItems((prev) => [
-        ...prev,
-        {
-          role: 'agent',
-          res: {
-            status: 'missing_answer',
-            answer: 'The agent is unavailable right now. Please try again.',
-            sources: [],
-            ticket_suggestion: null,
-            next_actions: [],
+  const send = useCallback(
+    async (message: string) => {
+      const text = message.trim()
+      if (!text || loading) return
+      setInput('')
+      setItems((prev) => [...prev, { role: 'user', text }])
+      setLoading(true)
+      try {
+        const res = await askAgent(text)
+        setItems((prev) => [...prev, { role: 'agent', res, ticket: { status: 'idle' } }])
+        voice.speak(res.answer)
+      } catch {
+        setItems((prev) => [
+          ...prev,
+          {
+            role: 'agent',
+            res: {
+              status: 'missing_answer',
+              answer: 'The agent is unavailable right now. Please try again.',
+              sources: [],
+              ticket_suggestion: null,
+              next_actions: [],
+            },
+            ticket: { status: 'idle' },
           },
-          ticket: { status: 'idle' },
-        },
-      ])
-    } finally {
-      setLoading(false)
-    }
-  }
+        ])
+      } finally {
+        setLoading(false)
+      }
+    },
+    [loading, voice],
+  )
+
+  useEffect(() => {
+    sendRef.current = send
+  }, [send])
 
   async function raiseTicket(index: number) {
     const item = items[index]
@@ -169,27 +187,76 @@ export function AgentPanel({ open, onClose }: { open: boolean; onClose: () => vo
           )}
         </div>
 
-        <form
-          className="flex gap-2 border-t border-edge px-4 py-3"
-          onSubmit={(e) => {
-            e.preventDefault()
-            send(input)
-          }}
-        >
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about the deal…"
-            className="flex-1 rounded-lg border border-edge bg-card px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-brand focus:outline-none"
-          />
-          <button
-            type="submit"
-            disabled={loading || !input.trim()}
-            className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-soft disabled:opacity-40"
+        <div className="border-t border-edge px-4 pt-2.5">
+          <div className="flex items-center justify-between text-[11px] text-slate-500">
+            <span>
+              {voice.state.status === 'unsupported'
+                ? 'Voice not supported in this browser (try Chrome or Edge)'
+                : voice.state.status === 'listening'
+                  ? 'Listening…'
+                  : voice.state.status === 'speaking'
+                    ? 'Speaking…'
+                    : voice.state.status === 'error'
+                      ? `Voice error: ${voice.state.message}`
+                      : 'Type, or hold the mic to speak'}
+            </span>
+            {voice.supported && (
+              <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={voice.autoSpeak}
+                  onChange={(e) => {
+                    if (!e.target.checked) voice.stopSpeaking()
+                    voice.setAutoSpeak(e.target.checked)
+                  }}
+                  className="h-3 w-3 accent-brand"
+                />
+                <span>Speak answers</span>
+              </label>
+            )}
+          </div>
+          <form
+            className="mt-2 flex gap-2 pb-3"
+            onSubmit={(e) => {
+              e.preventDefault()
+              send(input)
+            }}
           >
-            Send
-          </button>
-        </form>
+            {voice.supported && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (voice.state.status === 'listening') voice.stopListening()
+                  else voice.startListening()
+                }}
+                disabled={loading}
+                aria-label={
+                  voice.state.status === 'listening' ? 'Stop recording' : 'Record voice message'
+                }
+                className={`shrink-0 rounded-lg border px-3 py-2 text-sm transition disabled:opacity-40 ${
+                  voice.state.status === 'listening'
+                    ? 'animate-pulse border-red-500/50 bg-red-500/20 text-red-300'
+                    : 'border-edge bg-card text-slate-300 hover:border-brand hover:text-white'
+                }`}
+              >
+                {voice.state.status === 'listening' ? '⏹' : '🎤'}
+              </button>
+            )}
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Ask about the deal…"
+              className="flex-1 rounded-lg border border-edge bg-card px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-brand focus:outline-none"
+            />
+            <button
+              type="submit"
+              disabled={loading || !input.trim()}
+              className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-soft disabled:opacity-40"
+            >
+              Send
+            </button>
+          </form>
+        </div>
           </>
         )}
       </aside>
