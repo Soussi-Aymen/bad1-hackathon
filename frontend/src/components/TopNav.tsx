@@ -27,6 +27,14 @@ export function TopNav() {
           Deals
         </NavLink>
         <NavLink
+          to="/opportunities"
+          className={({ isActive }) =>
+            `${linkBase} ${isActive ? 'bg-brand text-white' : 'text-slate-300 hover:bg-card'}`
+          }
+        >
+          Opportunities
+        </NavLink>
+        <NavLink
           to="/lead-view"
           className={({ isActive }) =>
             `${linkBase} ${isActive ? 'bg-brand text-white' : 'text-slate-300 hover:bg-card'}`
