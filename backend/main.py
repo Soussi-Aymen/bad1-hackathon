@@ -1,14 +1,32 @@
 import json
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
+from anthropic import Anthropic
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
 load_dotenv()
+
+CLAUDE_MODEL = "claude-opus-4-7"
+_anthropic_client: Optional[Anthropic] = None
+
+
+def get_anthropic() -> Anthropic:
+    global _anthropic_client
+    if _anthropic_client is None:
+        api_key = os.environ.get("ANTHROPIC_API_KEY")
+        if not api_key:
+            raise HTTPException(
+                status_code=503,
+                detail="ANTHROPIC_API_KEY not configured on the backend.",
+            )
+        _anthropic_client = Anthropic(api_key=api_key)
+    return _anthropic_client
 
 DATA_DIR = Path(__file__).parent / "data"
 
@@ -162,8 +180,136 @@ def intro_request(deal_id: str):
 
 
 # Questions the investor has asked the text agent in this session.
-# Populated by /ask in B5; kept here so the lead view can show it.
+# Populated by /ask; kept here so the lead view can show it.
 ASKED_QUESTIONS: list[dict] = []
+
+
+SYSTEM_PROMPT_TEMPLATE = """You are the DealBridge deal intelligence agent for RoutePilot AI. \
+The lead investor is Kreuzberg Seed Partners. Your job is to help a co-investor evaluate \
+this deal by answering questions from the approved diligence packet below.
+
+Hard rules:
+1. Answer ONLY from the diligence packet. If something is not in the packet, do not guess.
+2. NEVER provide investment advice. Never say "you should invest", "this is a good deal", \
+   "I recommend", or anything similar. You present information; the investor decides.
+3. NEVER expose raw VC files or pretend to provide full source documents. You summarise \
+   approved content only.
+4. Identify the section(s) of the packet that support your answer (e.g. "traction", \
+   "lead_thesis", "risks", "diligence_status").
+5. If the question is outside the packet, suggest a clarification ticket to the lead \
+   instead of guessing.
+
+Output format. Respond with a SINGLE JSON object and nothing else. No markdown, no \
+backticks, no commentary outside the JSON. The schema is:
+
+{{
+  "status": "answered" | "missing_answer",
+  "answer": "<plain text answer or the not-covered explanation>",
+  "sources": [
+    {{ "label": "<short human label>", "section": "<key from the packet>" }}
+  ],
+  "ticket_suggestion": {{ "question": "<one-line follow-up>", "category": "<short tag>" }} or null,
+  "next_actions": ["ask_follow_up" | "start_voice_call" | "create_ticket" | "request_intro" | "decline"]
+}}
+
+When status is "answered", sources MUST be non-empty and ticket_suggestion MUST be null.
+When status is "missing_answer", sources MUST be empty and ticket_suggestion MUST be set.
+
+APPROVED DILIGENCE PACKET (JSON):
+{packet}
+"""
+
+
+def build_system_prompt() -> str:
+    packet = load_json("routepilot.json")
+    return SYSTEM_PROMPT_TEMPLATE.format(packet=json.dumps(packet, indent=2))
+
+
+def parse_agent_response(raw: str) -> dict:
+    """Parse Claude's JSON response. Fall back to a safe missing_answer shape."""
+    text = raw.strip()
+    # Defensive: strip markdown fences if Claude wrapped anyway.
+    if text.startswith("```"):
+        text = text.strip("`")
+        if text.lower().startswith("json"):
+            text = text[4:]
+        text = text.strip()
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError:
+        return {
+            "status": "missing_answer",
+            "answer": "The agent could not produce a structured answer for this question. You can raise it as a ticket to the lead instead.",
+            "sources": [],
+            "ticket_suggestion": {
+                "question": "Please clarify the question the co-investor asked.",
+                "category": "general",
+            },
+            "next_actions": ["create_ticket", "ask_follow_up"],
+        }
+
+    status = data.get("status")
+    if status not in ("answered", "missing_answer"):
+        status = "missing_answer"
+    answer = data.get("answer") or "Not covered in the approved diligence packet."
+    sources = data.get("sources") or []
+    ticket_suggestion = data.get("ticket_suggestion")
+    next_actions = data.get("next_actions") or []
+    if status == "answered":
+        ticket_suggestion = None
+        if not next_actions:
+            next_actions = ["ask_follow_up", "start_voice_call", "request_intro"]
+    else:
+        sources = []
+        if not ticket_suggestion:
+            ticket_suggestion = {
+                "question": "Please follow up with the lead on this question.",
+                "category": "general",
+            }
+        if not next_actions:
+            next_actions = ["create_ticket", "ask_follow_up", "start_voice_call"]
+    return {
+        "status": status,
+        "answer": answer,
+        "sources": sources,
+        "ticket_suggestion": ticket_suggestion,
+        "next_actions": next_actions,
+    }
+
+
+class AskRequest(BaseModel):
+    message: str
+
+
+@app.post("/api/deals/{deal_id}/ask")
+def ask_agent(deal_id: str, body: AskRequest):
+    assert_routepilot(deal_id)
+    client = get_anthropic()
+    system_prompt = build_system_prompt()
+    try:
+        message = client.messages.create(
+            model=CLAUDE_MODEL,
+            max_tokens=700,
+            temperature=0,
+            system=system_prompt,
+            messages=[{"role": "user", "content": body.message}],
+            timeout=30.0,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Claude call failed: {exc}")
+
+    raw_text = "".join(
+        block.text for block in message.content if getattr(block, "type", None) == "text"
+    )
+    result = parse_agent_response(raw_text)
+    ASKED_QUESTIONS.append(
+        {
+            "question": body.message,
+            "status": result["status"],
+            "asked_at": now_iso(),
+        }
+    )
+    return result
 
 
 @app.get("/api/lead-view/{deal_id}")
