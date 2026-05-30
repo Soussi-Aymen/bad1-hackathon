@@ -72,6 +72,15 @@ pnpm run dev
 
 Vite serves on http://localhost:5173 by default.
 
+The frontend ships with `USE_MOCKS=true` so it runs standalone without a backend. To hit the live backend instead, create `frontend/.env.local` with:
+
+```
+VITE_USE_MOCKS=false
+VITE_API_BASE_URL=http://localhost:8000
+```
+
+(Docker Compose sets these automatically.)
+
 ### Run only one service in Docker
 
 ```bash
