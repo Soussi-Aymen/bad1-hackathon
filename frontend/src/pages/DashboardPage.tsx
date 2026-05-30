@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { getDeals } from '../api'
 import { useAsync } from '../hooks/useAsync'
 import { DealCard } from '../components/DealCard'
@@ -14,6 +15,8 @@ export function DashboardPage() {
   }
 
   const { deals, portfolio_status } = data
+  const topDeals = [...deals].sort((a, b) => b.fit_score - a.fit_score).slice(0, 5)
+  const remaining = deals.length - topDeals.length
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -21,9 +24,17 @@ export function DashboardPage() {
         <div>
           <h1 className="text-xl font-semibold text-white">Deal Flow</h1>
           <p className="mt-1 text-sm text-slate-400">
-            Ranked by strategic fit with your thesis.
+            Top {topDeals.length} matches ranked by strategic fit with your thesis.
           </p>
         </div>
+        {remaining > 0 && (
+          <Link
+            to="/opportunities"
+            className="rounded-md border border-edge bg-panel px-3 py-1.5 text-xs font-medium text-slate-300 hover:bg-card"
+          >
+            See all {deals.length} opportunities →
+          </Link>
+        )}
       </div>
 
       <div className="mt-4 flex items-center gap-3 rounded-lg border border-edge bg-panel px-4 py-3">
@@ -34,7 +45,7 @@ export function DashboardPage() {
       </div>
 
       <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
-        {deals.map((deal) => (
+        {topDeals.map((deal) => (
           <DealCard key={deal.id} deal={deal} />
         ))}
       </div>
