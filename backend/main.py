@@ -159,3 +159,44 @@ def intro_request(deal_id: str):
         "message": "Intro request sent to Kreuzberg Seed Partners.",
         "next_step": "The lead can review your questions, tickets, and call summary before accepting.",
     }
+
+
+# Questions the investor has asked the text agent in this session.
+# Populated by /ask in B5; kept here so the lead view can show it.
+ASKED_QUESTIONS: list[dict] = []
+
+
+@app.get("/api/lead-view/{deal_id}")
+def lead_view(deal_id: str):
+    assert_routepilot(deal_id)
+    investor = load_json("investor.json")
+    deal_tickets = [t for t in TICKETS if t["deal_id"] == deal_id]
+    deal_calls = [c for c in VOICE_CALLS if c["deal_id"] == deal_id]
+    deal_intros = [i for i in INTRO_REQUESTS if i["deal_id"] == deal_id]
+    last_call = deal_calls[-1] if deal_calls else None
+    last_intro = deal_intros[-1] if deal_intros else None
+    return {
+        "deal": {
+            "id": "routepilot",
+            "name": "RoutePilot AI",
+            "lead_investor": "Kreuzberg Seed Partners",
+        },
+        "investor": {
+            "name": investor["name"],
+            "company": investor["company"],
+            "role": investor["role"],
+            "fit_score": 94,
+            "strategic_assets": investor["strategic_assets"],
+        },
+        "questions_asked": ASKED_QUESTIONS,
+        "tickets": deal_tickets,
+        "voice_call_summary": last_call,
+        "intro_request": last_intro,
+        "summary_stats": {
+            "questions_asked": len(ASKED_QUESTIONS),
+            "tickets_open": sum(1 for t in deal_tickets if t["status"] != "answered"),
+            "tickets_answered": sum(1 for t in deal_tickets if t["status"] == "answered"),
+            "voice_calls": len(deal_calls),
+            "intro_requested": last_intro is not None,
+        },
+    }
