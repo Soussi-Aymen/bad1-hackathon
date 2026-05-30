@@ -9,8 +9,8 @@ const ACTIVE_DEAL_ID = 'routepilot'
 function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
     <div>
-      <div className="text-[10px] uppercase tracking-wide text-slate-500">{label}</div>
-      <div className={`text-sm font-semibold ${accent ? 'text-accent' : 'text-slate-200'}`}>
+      <div className="text-[10px] font-medium uppercase tracking-wide text-faint">{label}</div>
+      <div className={`text-sm font-semibold ${accent ? 'text-accent' : 'text-ink'}`}>
         {value}
       </div>
     </div>
@@ -31,27 +31,27 @@ export function DealCard({ deal }: { deal: DealCardType }) {
       onClick={go}
       disabled={!active}
       className={[
-        'flex w-full flex-col rounded-xl border border-edge bg-card p-5 text-left transition',
+        'group flex w-full flex-col rounded-xl border bg-card p-5 text-left shadow-sm transition',
         active
-          ? 'cursor-pointer hover:border-brand hover:shadow-lg hover:shadow-brand/10'
-          : 'cursor-default opacity-55',
+          ? 'cursor-pointer border-edge hover:-translate-y-0.5 hover:border-brand/50 hover:shadow-md hover:shadow-brand/10'
+          : 'cursor-default border-edge opacity-60',
       ].join(' ')}
     >
       <div className="flex items-start justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-white">{deal.masked_name}</h3>
+            <h3 className="font-semibold text-ink">{deal.masked_name}</h3>
             {!active && (
-              <span className="rounded bg-panel px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-slate-500">
+              <span className="rounded bg-panel px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-faint">
                 Coming soon
               </span>
             )}
           </div>
-          <p className="mt-1 text-sm leading-relaxed text-slate-400">{deal.one_liner}</p>
+          <p className="mt-1 text-sm leading-relaxed text-muted">{deal.one_liner}</p>
         </div>
-        <div className="shrink-0 text-right">
-          <div className="text-2xl font-bold text-brand-soft">{deal.fit_score}</div>
-          <div className="text-[10px] uppercase tracking-wide text-slate-500">Fit</div>
+        <div className="flex shrink-0 flex-col items-center rounded-lg bg-brand-tint px-3 py-1.5">
+          <div className="text-xl font-bold leading-none text-brand">{deal.fit_score}</div>
+          <div className="mt-0.5 text-[10px] font-medium uppercase tracking-wide text-brand/70">Fit</div>
         </div>
       </div>
 
@@ -61,7 +61,7 @@ export function DealCard({ deal }: { deal: DealCardType }) {
         ))}
       </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-3 border-t border-edge pt-4">
+      <div className="mt-4 grid grid-cols-3 gap-x-3 gap-y-4 border-t border-edge pt-4">
         <Stat label="Stage" value={deal.stage} />
         <Stat label="Round" value={eur(deal.round_size)} />
         <Stat label="Allocation" value={eur(deal.allocation_available)} accent />
@@ -70,14 +70,18 @@ export function DealCard({ deal }: { deal: DealCardType }) {
         <Stat label="Closes in" value={`${deal.days_remaining}d`} />
       </div>
 
-      <div className="mt-4 flex items-center justify-between gap-2 border-t border-edge pt-3">
-        <p className="text-xs italic leading-relaxed text-slate-500">{deal.fit_reason}</p>
-        {deal.pending_tickets > 0 && (
-          <span className="shrink-0 rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-medium text-amber-400">
+      <div className="mt-4 rounded-lg border-l-2 border-brand/40 bg-panel/60 px-3 py-2">
+        <div className="text-[10px] font-semibold uppercase tracking-wide text-brand/70">Why it fits</div>
+        <p className="mt-0.5 text-xs leading-relaxed text-muted">{deal.fit_reason}</p>
+      </div>
+
+      {deal.pending_tickets > 0 && (
+        <div className="mt-3 flex items-center gap-1.5">
+          <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">
             {deal.pending_tickets} open ticket{deal.pending_tickets > 1 ? 's' : ''}
           </span>
-        )}
-      </div>
+        </div>
+      )}
     </button>
   )
 }

@@ -61,10 +61,10 @@ export function VoiceCall({ onAskAnother }: { onAskAnother: () => void }) {
       {call.status === 'idle' && (
         <div className="m-auto max-w-xs text-center">
           <div className="text-4xl">📞</div>
-          <h3 className="mt-3 font-semibold text-white">Voice AI Call</h3>
-          <p className="mt-1 text-sm text-slate-400">
+          <h3 className="mt-3 font-semibold text-ink">Voice AI Call</h3>
+          <p className="mt-1 text-sm text-muted">
             The Voice AI Agent calls the deal on your behalf to probe{' '}
-            <span className="text-slate-300">{TOPIC}</span>, then reports back a summary and
+            <span className="text-muted">{TOPIC}</span>, then reports back a summary and
             any unresolved items.
           </p>
           <button
@@ -82,13 +82,13 @@ export function VoiceCall({ onAskAnother }: { onAskAnother: () => void }) {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand/20">
             <span className="h-10 w-10 animate-ping rounded-full bg-brand/60" />
           </div>
-          <p className="mt-4 text-sm text-slate-300">Calling RoutePilot…</p>
+          <p className="mt-4 text-sm text-muted">Calling RoutePilot…</p>
         </div>
       )}
 
       {call.status === 'error' && (
         <div className="m-auto text-center">
-          <p className="text-sm text-red-400">The call could not be completed.</p>
+          <p className="text-sm text-red-600">The call could not be completed.</p>
           <button
             type="button"
             onClick={start}
@@ -101,20 +101,20 @@ export function VoiceCall({ onAskAnother }: { onAskAnother: () => void }) {
 
       {call.status === 'done' && (
         <div className="space-y-4 overflow-y-auto">
-          <div className="rounded-lg border border-edge bg-card p-3">
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+          <div className="rounded-lg border border-edge bg-panel p-3">
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-faint">
               Call summary
             </div>
-            <p className="mt-1.5 text-sm leading-relaxed text-slate-200">{call.res.summary}</p>
+            <p className="mt-1.5 text-sm leading-relaxed text-ink">{call.res.summary}</p>
           </div>
 
           <div>
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-faint">
               Unresolved items
             </div>
             <ul className="mt-2 space-y-1.5">
               {call.res.unresolved_items.map((u) => (
-                <li key={u} className="flex gap-2 text-sm text-slate-300">
+                <li key={u} className="flex gap-2 text-sm text-muted">
                   <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-amber-400" />
                   {u}
                 </li>
@@ -132,8 +132,8 @@ export function VoiceCall({ onAskAnother }: { onAskAnother: () => void }) {
                   disabled={a === 'request_intro' && intro.status === 'sending'}
                   className={`rounded-lg px-3 py-2 text-sm font-medium transition disabled:opacity-50 ${
                     a === 'request_intro'
-                      ? 'bg-brand text-white hover:bg-brand-soft'
-                      : 'border border-edge bg-card text-slate-300 hover:border-brand'
+                      ? 'bg-brand text-white shadow-sm shadow-brand/30 hover:bg-brand-soft'
+                      : 'border border-edge bg-panel text-muted hover:border-brand hover:text-ink'
                   }`}
                 >
                   {a === 'request_intro' && intro.status === 'sending'
@@ -145,20 +145,20 @@ export function VoiceCall({ onAskAnother }: { onAskAnother: () => void }) {
           )}
 
           {waiting && intro.status !== 'sent' && (
-            <div className="rounded-lg border border-edge bg-card p-3 text-xs text-slate-400">
+            <div className="rounded-lg border border-edge bg-panel p-3 text-xs text-muted">
               Noted — you'll be notified when the lead answers your open ticket.
             </div>
           )}
 
           {intro.status === 'error' && (
-            <div className="text-xs text-red-400">Could not send the intro request.</div>
+            <div className="text-xs text-red-600">Could not send the intro request.</div>
           )}
 
           {intro.status === 'sent' && (
-            <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 p-3 text-sm text-emerald-200">
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
               <div className="font-semibold">✓ Intro requested</div>
-              <div className="mt-0.5 text-xs text-emerald-300/80">{intro.res.message}</div>
-              <div className="mt-1 text-xs text-emerald-300/60">{intro.res.next_step}</div>
+              <div className="mt-0.5 text-xs text-emerald-700">{intro.res.message}</div>
+              <div className="mt-1 text-xs text-emerald-600">{intro.res.next_step}</div>
             </div>
           )}
         </div>

@@ -5,9 +5,9 @@ const base =
   'inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium'
 
 const DILIGENCE: Record<DiligenceStatus, { cls: string; dot: string; label: string }> = {
-  verified: { cls: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300', dot: 'bg-emerald-400', label: 'Verified' },
-  pending: { cls: 'border-amber-500/30 bg-amber-500/10 text-amber-300', dot: 'bg-amber-400', label: 'Pending' },
-  flagged: { cls: 'border-red-500/30 bg-red-500/10 text-red-300', dot: 'bg-red-400', label: 'Flagged' },
+  verified: { cls: 'border-emerald-200 bg-emerald-50 text-emerald-700', dot: 'bg-emerald-500', label: 'Verified' },
+  pending: { cls: 'border-amber-200 bg-amber-50 text-amber-700', dot: 'bg-amber-500', label: 'Pending' },
+  flagged: { cls: 'border-red-200 bg-red-50 text-red-700', dot: 'bg-red-500', label: 'Flagged' },
 }
 
 export function DiligenceBadge({ status }: { status: DiligenceStatus }) {
@@ -21,9 +21,9 @@ export function DiligenceBadge({ status }: { status: DiligenceStatus }) {
 }
 
 const SEVERITY: Record<RiskSeverity, { cls: string; label: string }> = {
-  high: { cls: 'border-red-500/30 bg-red-500/10 text-red-300', label: 'High' },
-  medium: { cls: 'border-amber-500/30 bg-amber-500/10 text-amber-300', label: 'Medium' },
-  low: { cls: 'border-slate-500/30 bg-slate-500/10 text-slate-300', label: 'Low' },
+  high: { cls: 'border-red-200 bg-red-50 text-red-700', label: 'High' },
+  medium: { cls: 'border-amber-200 bg-amber-50 text-amber-700', label: 'Medium' },
+  low: { cls: 'border-slate-200 bg-slate-100 text-slate-600', label: 'Low' },
 }
 
 export function SeverityBadge({ severity }: { severity: RiskSeverity }) {
@@ -32,9 +32,9 @@ export function SeverityBadge({ severity }: { severity: RiskSeverity }) {
 }
 
 const TREND: Record<MetricTrend, { glyph: string; cls: string }> = {
-  up: { glyph: '▲', cls: 'text-emerald-400' },
-  down: { glyph: '▼', cls: 'text-red-400' },
-  stable: { glyph: '▬', cls: 'text-slate-500' },
+  up: { glyph: '▲', cls: 'text-emerald-600' },
+  down: { glyph: '▼', cls: 'text-red-600' },
+  stable: { glyph: '▬', cls: 'text-faint' },
 }
 
 export function TrendIcon({ trend }: { trend: MetricTrend }) {

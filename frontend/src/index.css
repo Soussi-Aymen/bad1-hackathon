@@ -1,13 +1,22 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-canvas: #0b1220;
-  --color-panel: #111a30;
-  --color-card: #16213d;
-  --color-edge: #26324f;
-  --color-brand: #6366f1;
-  --color-brand-soft: #818cf8;
-  --color-accent: #22d3ee;
+  /* Surfaces — light, layered neutrals */
+  --color-canvas: #f4f6fa; /* page background, very light cool gray */
+  --color-panel: #eef1f7; /* inset / secondary surfaces, table headers */
+  --color-card: #ffffff; /* primary cards & rails */
+  --color-edge: #e4e8f0; /* subtle hairline borders */
+
+  /* Text — semantic ink scale */
+  --color-ink: #0f1b33; /* primary text / headings */
+  --color-muted: #51607a; /* secondary / body text */
+  --color-faint: #8995ab; /* tertiary labels, captions */
+
+  /* Brand & accent — used sparingly */
+  --color-brand: #4f46e5; /* indigo-600, primary actions & active nav */
+  --color-brand-soft: #6366f1; /* indigo-500, hover / emphasis */
+  --color-brand-tint: #eef0fe; /* indigo wash for soft fills */
+  --color-accent: #0e7490; /* teal-cyan, for allocation / money emphasis */
 }
 
 html,
@@ -19,7 +28,7 @@ body,
 body {
   margin: 0;
   background-color: var(--color-canvas);
-  color: #e2e8f0;
+  color: var(--color-ink);
   font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

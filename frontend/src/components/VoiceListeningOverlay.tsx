@@ -60,10 +60,11 @@ export function VoiceListeningOverlay({
       })
     : bars
 
-  const ringColor = speaking ? 'bg-brand-soft/40' : listening ? 'bg-red-500/25' : 'bg-slate-500/20'
-  const ringCoreFrom = speaking ? 'from-brand-soft' : listening ? 'from-red-500' : 'from-slate-500'
-  const ringCoreTo = speaking ? 'to-brand' : listening ? 'to-amber-500' : 'to-slate-600'
-  const dotColor = speaking ? 'text-brand-soft bg-brand-soft/15' : 'text-red-300 bg-red-500/15'
+  const ringColor = speaking ? 'bg-brand/30' : listening ? 'bg-red-400/30' : 'bg-slate-300/40'
+  const ringCoreFrom = speaking ? 'from-brand-soft' : listening ? 'from-red-400' : 'from-slate-300'
+  const ringCoreTo = speaking ? 'to-brand' : listening ? 'to-amber-400' : 'to-slate-400'
+  const dotColor = speaking ? 'text-brand bg-brand-tint' : listening ? 'text-red-600 bg-red-50' : 'text-faint bg-panel'
+  const barColor = speaking ? 'bg-brand' : listening ? 'bg-red-500' : 'bg-slate-400'
   const label = speaking
     ? '◆ Speaking'
     : listening
@@ -76,12 +77,12 @@ export function VoiceListeningOverlay({
       : 'Agent is preparing an answer…'
 
   return (
-    <div className="absolute inset-0 z-10 flex flex-col items-center justify-between bg-gradient-to-b from-panel via-panel to-card/95 px-6 py-8 backdrop-blur-sm">
+    <div className="absolute inset-0 z-10 flex flex-col items-center justify-between bg-gradient-to-b from-card via-canvas to-panel px-6 py-8 backdrop-blur-sm">
       <div className="flex flex-col items-center gap-1.5 text-center">
         <span className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-widest ${dotColor}`}>
           {label}
         </span>
-        <span className="text-xs text-slate-500">{subline}</span>
+        <span className="text-xs text-faint">{subline}</span>
       </div>
 
       <div className="relative flex h-44 w-full items-center justify-center">
@@ -100,7 +101,7 @@ export function VoiceListeningOverlay({
           }}
         />
         <div
-          className={`absolute h-20 w-20 rounded-full bg-gradient-to-br ${ringCoreFrom} ${ringCoreTo} shadow-[0_0_40px_rgba(59,130,246,0.45)] transition-transform duration-100 ease-out`}
+          className={`absolute h-20 w-20 rounded-full bg-gradient-to-br ${ringCoreFrom} ${ringCoreTo} shadow-[0_0_40px_rgba(79,70,229,0.35)] transition-transform duration-100 ease-out`}
           style={{ transform: `scale(${1 + (listening ? volume : speaking ? 0.15 + Math.sin(t * 3) * 0.05 : 0) * 0.5})` }}
         />
 
@@ -112,7 +113,7 @@ export function VoiceListeningOverlay({
             return (
               <span
                 key={i}
-                className="block w-1 rounded-full bg-white/90 shadow-[0_0_8px_rgba(255,255,255,0.4)]"
+                className={`block w-1 rounded-full ${barColor}`}
                 style={{
                   height: `${h}%`,
                   transition: 'height 60ms ease-out',
@@ -124,18 +125,18 @@ export function VoiceListeningOverlay({
       </div>
 
       <div className="w-full">
-        <div className="min-h-[3rem] rounded-xl border border-edge bg-card/70 px-4 py-3 text-center text-sm text-slate-200">
+        <div className="min-h-[3rem] rounded-xl border border-edge bg-card/80 px-4 py-3 text-center text-sm text-ink shadow-sm">
           {listening && interimTranscript && <span className="italic">{interimTranscript}</span>}
-          {listening && !interimTranscript && <span className="text-slate-500">…</span>}
+          {listening && !interimTranscript && <span className="text-faint">…</span>}
           {speaking && (
-            <span className="line-clamp-3 text-left text-slate-300">{lastAgentReply}</span>
+            <span className="line-clamp-3 text-left text-muted">{lastAgentReply}</span>
           )}
-          {thinking && <span className="animate-pulse text-slate-500">Thinking…</span>}
+          {thinking && <span className="animate-pulse text-faint">Thinking…</span>}
         </div>
         <button
           type="button"
           onClick={onEnd}
-          className="mt-4 w-full rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-2.5 text-sm font-semibold text-red-200 transition hover:bg-red-500/20"
+          className="mt-4 w-full rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-100"
         >
           End voice chat
         </button>

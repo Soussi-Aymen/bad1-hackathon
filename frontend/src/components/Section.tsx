@@ -10,9 +10,9 @@ export function Section({
   aside?: ReactNode
 }) {
   return (
-    <section className="rounded-xl border border-edge bg-card p-5">
+    <section className="rounded-xl border border-edge bg-card p-5 shadow-sm">
       <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-faint">
           {title}
         </h2>
         {aside}

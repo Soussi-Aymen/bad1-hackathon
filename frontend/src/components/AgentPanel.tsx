@@ -104,26 +104,26 @@ export function AgentPanel({ open, onClose }: { open: boolean; onClose: () => vo
     <>
       {/* backdrop */}
       <div
-        className={`fixed inset-0 z-30 bg-black/50 transition-opacity ${
+        className={`fixed inset-0 z-30 bg-ink/40 backdrop-blur-[1px] transition-opacity ${
           open ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
         onClick={onClose}
       />
       {/* drawer */}
       <aside
-        className={`fixed right-0 top-0 z-40 flex h-full w-full max-w-md flex-col border-l border-edge bg-panel shadow-2xl transition-transform ${
+        className={`fixed right-0 top-0 z-40 flex h-full w-full max-w-md flex-col border-l border-edge bg-card shadow-2xl transition-transform ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         <header className="flex items-center justify-between border-b border-edge px-5 py-3">
           <div>
-            <div className="font-semibold text-white">Deal Agent</div>
-            <div className="text-xs text-slate-500">RoutePilot AI · approved answers only</div>
+            <div className="font-semibold text-ink">Deal Agent</div>
+            <div className="text-xs text-faint">RoutePilot AI · approved answers only</div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md px-2 py-1 text-slate-400 hover:bg-card hover:text-white"
+            className="rounded-md px-2 py-1 text-muted hover:bg-panel hover:text-ink"
             aria-label="Close agent panel"
           >
             ✕
@@ -137,7 +137,7 @@ export function AgentPanel({ open, onClose }: { open: boolean; onClose: () => vo
               type="button"
               onClick={() => setTab(t)}
               className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
-                tab === t ? 'bg-brand text-white' : 'text-slate-400 hover:bg-card'
+                tab === t ? 'bg-brand text-white shadow-sm' : 'text-muted hover:bg-panel'
               }`}
             >
               {t === 'chat' ? 'Chat' : 'Voice Call'}
@@ -168,7 +168,7 @@ export function AgentPanel({ open, onClose }: { open: boolean; onClose: () => vo
         )}
         <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
           {items.length === 0 && !loading && (
-            <div className="text-sm text-slate-400">
+            <div className="text-sm text-muted">
               <p>Ask anything about RoutePilot. I answer only from the approved diligence packet and never give investment advice.</p>
               <div className="mt-3 space-y-1.5">
                 {SUGGESTED.map((q) => (
@@ -176,7 +176,7 @@ export function AgentPanel({ open, onClose }: { open: boolean; onClose: () => vo
                     key={q}
                     type="button"
                     onClick={() => send(q)}
-                    className="block w-full rounded-lg border border-edge bg-card px-3 py-2 text-left text-xs text-slate-300 hover:border-brand"
+                    className="block w-full rounded-lg border border-edge bg-panel px-3 py-2 text-left text-xs text-muted transition-colors hover:border-brand/50 hover:text-ink"
                   >
                     {q}
                   </button>
@@ -198,7 +198,7 @@ export function AgentPanel({ open, onClose }: { open: boolean; onClose: () => vo
           )}
 
           {loading && (
-            <div className="flex items-center gap-2 text-sm text-slate-500">
+            <div className="flex items-center gap-2 text-sm text-faint">
               <span className="h-2 w-2 animate-pulse rounded-full bg-brand-soft" />
               <span className="h-2 w-2 animate-pulse rounded-full bg-brand-soft [animation-delay:150ms]" />
               <span className="h-2 w-2 animate-pulse rounded-full bg-brand-soft [animation-delay:300ms]" />
@@ -209,7 +209,7 @@ export function AgentPanel({ open, onClose }: { open: boolean; onClose: () => vo
         </div>
 
         <div className="border-t border-edge px-4 pt-2.5">
-          <div className="flex items-center justify-between text-[11px] text-slate-500">
+          <div className="flex items-center justify-between text-[11px] text-faint">
             <span>
               {voice.state.status === 'unsupported'
                 ? 'Voice not supported in this browser (try Chrome or Edge)'
@@ -241,32 +241,26 @@ export function AgentPanel({ open, onClose }: { open: boolean; onClose: () => vo
               send(input)
             }}
           >
-            {voice.supported && (
+            {/* Mic toggle: hidden while a voice chat is active (the listening
+                overlay owns the "End voice chat" control), reappears once the
+                conversation ends. */}
+            {voice.supported && !voice.conversationMode && (
               <button
                 type="button"
-                onClick={() => {
-                  if (voice.conversationMode) voice.endConversation()
-                  else voice.startConversation()
-                }}
+                onClick={() => voice.startConversation()}
                 disabled={loading}
-                aria-label={
-                  voice.conversationMode ? 'End voice chat' : 'Start voice chat'
-                }
-                title={voice.conversationMode ? 'End voice chat' : 'Start voice chat'}
-                className={`shrink-0 rounded-lg border px-3 py-2 text-sm transition disabled:opacity-40 ${
-                  voice.conversationMode
-                    ? 'animate-pulse border-red-500/50 bg-red-500/20 text-red-300'
-                    : 'border-edge bg-card text-slate-300 hover:border-brand hover:text-white'
-                }`}
+                aria-label="Start voice chat"
+                title="Start voice chat"
+                className="shrink-0 rounded-lg border border-edge bg-panel px-3 py-2 text-sm text-muted transition hover:border-brand hover:text-ink disabled:opacity-40"
               >
-                {voice.conversationMode ? '⏹' : '🎤'}
+                🎤
               </button>
             )}
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about the deal…"
-              className="flex-1 rounded-lg border border-edge bg-card px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-brand focus:outline-none"
+              className="flex-1 rounded-lg border border-edge bg-panel px-3 py-2 text-sm text-ink placeholder:text-faint focus:border-brand focus:bg-card focus:outline-none focus:ring-2 focus:ring-brand/15"
             />
             <button
               type="submit"
@@ -306,8 +300,8 @@ function AgentMessage({
         <div
           className={`rounded-2xl rounded-bl-sm px-3.5 py-2.5 text-sm leading-relaxed ${
             answered
-              ? 'bg-card text-slate-200'
-              : 'border border-amber-500/40 bg-amber-500/10 text-amber-100'
+              ? 'border border-edge bg-panel text-ink'
+              : 'border border-amber-200 bg-amber-50 text-amber-900'
           }`}
         >
           {res.answer}
@@ -318,7 +312,7 @@ function AgentMessage({
             {res.sources.map((s, i) => (
               <span
                 key={`${s.label}-${i}`}
-                className="inline-flex items-center gap-1 rounded-md border border-edge bg-panel px-2 py-0.5 text-[11px] text-slate-300"
+                className="inline-flex items-center gap-1 rounded-md border border-edge bg-panel px-2 py-0.5 text-[11px] text-muted"
                 title={`Source: ${s.section}`}
               >
                 <span className="text-accent">◆</span>
@@ -329,9 +323,9 @@ function AgentMessage({
         )}
 
         {!answered && res.ticket_suggestion && ticket.status !== 'created' && (
-          <div className="rounded-lg border border-edge bg-card p-3">
-            <div className="text-xs text-slate-400">Raise this with the VC lead:</div>
-            <div className="mt-1 text-sm text-slate-200">
+          <div className="rounded-lg border border-amber-200 bg-amber-50/60 p-3">
+            <div className="text-xs font-medium text-amber-700">Raise this with the VC lead:</div>
+            <div className="mt-1 text-sm text-ink">
               “{res.ticket_suggestion.question}”
             </div>
             <button
@@ -343,15 +337,15 @@ function AgentMessage({
               {ticket.status === 'creating' ? 'Creating…' : 'Create VC Ticket'}
             </button>
             {ticket.status === 'error' && (
-              <div className="mt-2 text-xs text-red-400">{ticket.message}</div>
+              <div className="mt-2 text-xs text-red-600">{ticket.message}</div>
             )}
           </div>
         )}
 
         {ticket.status === 'created' && (
-          <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 p-3 text-sm text-emerald-200">
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
             <div className="font-semibold">✓ Ticket {ticket.res.ticket_id} created</div>
-            <div className="mt-0.5 text-xs text-emerald-300/80">
+            <div className="mt-0.5 text-xs text-emerald-600">
               {ticket.res.message} Estimated response: {ticket.res.estimated_response}.
             </div>
           </div>
