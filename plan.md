@@ -32,6 +32,16 @@ Take the **revised plan** as the base (simpler, matches the current BP). Keep th
 - Compact lead view with tickets + call summary + intro request.
 - Voice = browser SpeechRecognition / SpeechSynthesis around the same `/ask` endpoint — **only if both teams finish core flow before 2h00**. Otherwise skip and use the simulated voice-call summary endpoint.
 
+### Post-MVP additions (built after the core flow was green)
+
+- **Opportunities table** (`/opportunities`) — dedicated page listing every matched deal with fit score, sectors, stage, round size, allocation, lead, DD %, days remaining, and open tickets. Sorted by fit; clickable rows for active deals.
+- **Expanded deal pool** — 10 deals total (was 3). Dashboard shows the top 5 by fit; remaining 5 live on the Opportunities page.
+- **Continuous two-way voice chat** in the chat agent — browser Web Speech APIs, zero extra API keys, Chrome / Edge:
+  - Tap the 🎤 once to start. The agent listens → transcribes (live, with interim results) → answers → speaks the answer → automatically resumes listening. Loop continues until the user clicks **End voice chat**.
+  - Premium listening overlay (Siri / ChatGPT voice-mode feel): Web Audio `AnalyserNode` drives a frequency-reactive bar visualiser, the aura scales with input volume, and a live caption shows what the user is saying as they speak.
+  - Separate visual state while the agent is speaking: bars switch to a smooth synthetic envelope, aura tint changes, last reply shown as caption.
+  - Mic is closed during TTS playback so the agent does not hear itself; benign `no-speech` / `aborted` events are swallowed so silences don't kill the loop.
+
 Cut for the 2h30 window:
 
 - Expert validation flow (`POST /validation`) — defer.

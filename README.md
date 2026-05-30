@@ -4,6 +4,15 @@ Co-investment intelligence platform for strategic co-investors evaluating early-
 
 Hackathon MVP — built in a single 2h30 sprint. Full build plan: [`plan.md`](./plan.md).
 
+## Highlights
+
+- **AI deal agent** grounded in an approved diligence packet — answers with source citations, refuses investment advice, never exposes raw VC files.
+- **Ticket escalation** when the agent cannot answer from the packet.
+- **Continuous two-way voice chat** with a premium listening overlay: frequency-reactive bars driven by live mic audio, volume-driven aura, and a live transcript caption. After the agent finishes replying, the mic re-opens automatically — no clicks needed until you end the conversation. Zero extra API keys (Chrome / Edge only).
+- **Dashboard** with top-5 matched deals and an **Opportunities** table view of all 10.
+- **Voice AI call** with a canned summary + unresolved-items list.
+- **Lead view** aggregating questions, tickets, call summary, and intro request.
+
 ## Quick start — one command (Docker Compose)
 
 ```bash

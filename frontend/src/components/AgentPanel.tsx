@@ -3,6 +3,7 @@ import { askAgent, createTicket } from '../api'
 import type { AskResponse, TicketCreateResponse } from '../types'
 import { VoiceCall } from './VoiceCall'
 import { useVoice } from '../hooks/useVoice'
+import { VoiceListeningOverlay } from './VoiceListeningOverlay'
 
 type Tab = 'chat' | 'voice'
 
@@ -41,6 +42,8 @@ export function AgentPanel({ open, onClose }: { open: boolean; onClose: () => vo
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
   }, [items, loading])
+
+  const lastAgentReply = [...items].reverse().find((it) => it.role === 'agent')?.res.answer ?? ''
 
   const send = useCallback(
     async (message: string) => {
@@ -146,6 +149,23 @@ export function AgentPanel({ open, onClose }: { open: boolean; onClose: () => vo
           <VoiceCall onAskAnother={() => setTab('chat')} />
         ) : (
           <>
+        <div className="relative flex min-h-0 flex-1 flex-col">
+        {voice.conversationMode && (
+          <VoiceListeningOverlay
+            bars={voice.bars}
+            volume={voice.volume}
+            interimTranscript={voice.interimTranscript}
+            phase={
+              voice.state.status === 'listening'
+                ? 'listening'
+                : voice.state.status === 'speaking'
+                  ? 'speaking'
+                  : 'idle'
+            }
+            lastAgentReply={lastAgentReply}
+            onEnd={voice.endConversation}
+          />
+        )}
         <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
           {items.length === 0 && !loading && (
             <div className="text-sm text-slate-400">
@@ -186,21 +206,20 @@ export function AgentPanel({ open, onClose }: { open: boolean; onClose: () => vo
             </div>
           )}
         </div>
+        </div>
 
         <div className="border-t border-edge px-4 pt-2.5">
           <div className="flex items-center justify-between text-[11px] text-slate-500">
             <span>
               {voice.state.status === 'unsupported'
                 ? 'Voice not supported in this browser (try Chrome or Edge)'
-                : voice.state.status === 'listening'
-                  ? 'Listening…'
-                  : voice.state.status === 'speaking'
-                    ? 'Speaking…'
-                    : voice.state.status === 'error'
-                      ? `Voice error: ${voice.state.message}`
-                      : 'Type, or hold the mic to speak'}
+                : voice.conversationMode
+                  ? 'Voice chat active — speak naturally, agent will reply aloud'
+                  : voice.state.status === 'error'
+                    ? `Voice error: ${voice.state.message}`
+                    : 'Type, or tap the mic to start a voice chat'}
             </span>
-            {voice.supported && (
+            {voice.supported && !voice.conversationMode && (
               <label className="flex items-center gap-1.5 cursor-pointer select-none">
                 <input
                   type="checkbox"
@@ -226,20 +245,21 @@ export function AgentPanel({ open, onClose }: { open: boolean; onClose: () => vo
               <button
                 type="button"
                 onClick={() => {
-                  if (voice.state.status === 'listening') voice.stopListening()
-                  else voice.startListening()
+                  if (voice.conversationMode) voice.endConversation()
+                  else voice.startConversation()
                 }}
                 disabled={loading}
                 aria-label={
-                  voice.state.status === 'listening' ? 'Stop recording' : 'Record voice message'
+                  voice.conversationMode ? 'End voice chat' : 'Start voice chat'
                 }
+                title={voice.conversationMode ? 'End voice chat' : 'Start voice chat'}
                 className={`shrink-0 rounded-lg border px-3 py-2 text-sm transition disabled:opacity-40 ${
-                  voice.state.status === 'listening'
+                  voice.conversationMode
                     ? 'animate-pulse border-red-500/50 bg-red-500/20 text-red-300'
                     : 'border-edge bg-card text-slate-300 hover:border-brand hover:text-white'
                 }`}
               >
-                {voice.state.status === 'listening' ? '⏹' : '🎤'}
+                {voice.conversationMode ? '⏹' : '🎤'}
               </button>
             )}
             <input
