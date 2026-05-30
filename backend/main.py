@@ -290,7 +290,6 @@ def ask_agent(deal_id: str, body: AskRequest):
         message = client.messages.create(
             model=CLAUDE_MODEL,
             max_tokens=700,
-            temperature=0,
             system=system_prompt,
             messages=[{"role": "user", "content": body.message}],
             timeout=30.0,
