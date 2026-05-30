@@ -43,6 +43,16 @@ Rebuild after dependency changes:
 docker compose up --build --force-recreate
 ```
 
+## Architecture
+
+Two views of the system design — pick whichever fits the slide:
+
+![DealBridge system architecture — detailed](./docs/images/system-architecture-1.jpg)
+
+![DealBridge system architecture — overview](./docs/images/system-architecture-2.jpg)
+
+Browser ⇄ FastAPI ⇄ Claude Opus 4.7. Hardcoded JSON + in-memory state on the backend. Voice runs entirely in the browser via Web Speech APIs — no extra services, no extra API keys.
+
 ## Stack
 
 - **Backend:** Python 3.11+, FastAPI, Anthropic SDK (Claude Opus 4.7). Hardcoded JSON + in-memory state. No database.
