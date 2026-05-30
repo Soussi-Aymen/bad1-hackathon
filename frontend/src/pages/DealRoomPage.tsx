@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getDealDetail } from '../api'
 import { useAsync } from '../hooks/useAsync'
@@ -5,9 +6,11 @@ import { eur } from '../format'
 import { Pill } from '../components/Pill'
 import { Section } from '../components/Section'
 import { DiligenceBadge, SeverityBadge, TrendIcon } from '../components/badges'
+import { AgentPanel } from '../components/AgentPanel'
 
 export function DealRoomPage() {
   const { data: deal, loading, error } = useAsync(getDealDetail)
+  const [agentOpen, setAgentOpen] = useState(false)
 
   if (loading) {
     return <div className="animate-pulse text-sm text-slate-500">Loading deal room…</div>
@@ -235,13 +238,16 @@ export function DealRoomPage() {
         </Section>
       </div>
 
-      {/* Talk to deal agent — wired up in F4 */}
+      {/* Talk to deal agent */}
       <button
         type="button"
+        onClick={() => setAgentOpen(true)}
         className="fixed bottom-6 right-6 z-20 rounded-full bg-brand px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-brand/30 transition hover:bg-brand-soft"
       >
         💬 Talk to deal agent
       </button>
+
+      <AgentPanel open={agentOpen} onClose={() => setAgentOpen(false)} />
     </div>
   )
 }
