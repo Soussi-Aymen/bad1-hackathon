@@ -86,9 +86,7 @@ Hits all 9 endpoints in demo order and prints status of each.
 │   ├── smoke_test.ps1
 │   └── .env.example
 ├── frontend/                (built in parallel)
-├── plan.md                  Frozen build plan
-├── DealBridge_Technical_Build_Plan.md
-└── DealBridge_Technical_Build_Plan_revised.md
+└── plan.md                  Frozen build plan
 ```
 
 ## What is intentionally NOT in this MVP
