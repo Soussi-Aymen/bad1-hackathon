@@ -1,0 +1,139 @@
+{
+  "id": "routepilot",
+  "masked_name": "RoutePilot AI",
+  "one_liner": "AI-powered route optimisation for mid-market logistics companies",
+  "stage": "Seed",
+  "sector_tags": ["logistics", "AI", "SaaS"],
+  "founded": "2024",
+  "team_size": 12,
+  "location": "Berlin, Germany",
+  "round": {
+    "size": 2400000,
+    "valuation_type": "Post-money SAFE",
+    "allocation_available": 400000,
+    "lead_investor": "Kreuzberg Seed Partners",
+    "dd_completion": 82,
+    "days_remaining": 12,
+    "min_ticket": 25000
+  },
+  "overview": "RoutePilot AI builds an AI-powered route optimisation engine for mid-market logistics companies (50-500 vehicles). Their software integrates with existing TMS platforms and claims to reduce route planning time by 80% and improve delivery efficiency by 18-30%. The product targets a segment underserved by enterprise solutions (too expensive) and manual planning (too slow).",
+  "market": {
+    "tam": "EUR 14B European logistics software market",
+    "segment": "Mid-market fleet operators (50-500 vehicles), ~12,000 companies in DACH alone",
+    "trends": "Regulatory pressure on emissions reporting, driver shortage forcing efficiency gains, legacy TMS vendors slow to adopt AI"
+  },
+  "traction": {
+    "metrics": [
+      { "label": "Monthly shipments optimised", "value": "45,000", "trend": "up" },
+      { "label": "Customers", "value": "18 paying", "trend": "up" },
+      { "label": "MRR", "value": "EUR 38,000", "trend": "up" },
+      { "label": "MoM growth", "value": "22%", "trend": "up" },
+      { "label": "Net revenue retention", "value": "115%", "trend": "stable" },
+      { "label": "CAC", "value": "EUR 4,200", "trend": "down" },
+      { "label": "LTV", "value": "EUR 52,000", "trend": "up" },
+      { "label": "Burn rate", "value": "EUR 85,000/month", "trend": "stable" },
+      { "label": "Runway", "value": "8 months (pre-round)", "trend": "stable" }
+    ]
+  },
+  "team": [
+    {
+      "role": "CEO & Co-founder",
+      "background": "12 years in logistics tech. Previously VP Product at a Series B fleet management company (acquired 2022). MBA from WHU.",
+      "name_masked": true
+    },
+    {
+      "role": "CTO & Co-founder",
+      "background": "PhD in Operations Research (TU Berlin). 3 patents in combinatorial route optimisation. Previously senior engineer at HERE Technologies.",
+      "name_masked": true
+    },
+    {
+      "role": "VP Sales",
+      "background": "8 years in enterprise SaaS sales. Previously at Samsara (logistics IoT). Built DACH sales from 0 to EUR 2M ARR.",
+      "name_masked": true
+    }
+  ],
+  "financials_snapshot": {
+    "arr": "EUR 456,000",
+    "gross_margin": "82%",
+    "cac_payback": "4 months",
+    "ltv_cac_ratio": "12.4x"
+  },
+  "lead_thesis": {
+    "title": "Why Kreuzberg Seed Partners invested",
+    "content": "We believe the mid-market logistics segment is fundamentally underserved by current software. Enterprise TMS vendors (Oracle, SAP) price out this segment, while most operators still plan routes manually or with basic tools. RoutePilot's approach - integrating as a layer on top of existing TMS rather than replacing it - reduces adoption friction dramatically. The founding team combines deep domain expertise with strong technical capability. Our key conviction: the 18-30% efficiency gain claim is backed by 6 months of customer data across 3 fleet sizes. Our key uncertainty: whether the sales motion can scale beyond founder-led selling. The VP Sales hire is promising but unproven at this stage.",
+    "open_questions_from_lead": [
+      "Can the sales motion scale beyond founder-led deals?",
+      "Will mid-market operators pay EUR 2,500/month for optimisation software?",
+      "How defensible is the AI model against incumbents adding similar features?"
+    ]
+  },
+  "strategic_fit": {
+    "overall_score": 94,
+    "dimensions": [
+      {
+        "dimension": "Sector expertise",
+        "score": 98,
+        "explanation": "You have 20 years in logistics operations - you can evaluate their product claims from direct experience"
+      },
+      {
+        "dimension": "Customer network",
+        "score": 92,
+        "explanation": "Your 200+ warehouse partnerships include the exact mid-market operators RoutePilot targets"
+      },
+      {
+        "dimension": "Distribution value",
+        "score": 95,
+        "explanation": "You could introduce RoutePilot to your DACH logistics network as both a channel and a validation partner"
+      },
+      {
+        "dimension": "Technical assessment",
+        "score": 88,
+        "explanation": "Your operational experience lets you validate whether their efficiency claims hold in real fleet environments"
+      },
+      {
+        "dimension": "Portfolio gap",
+        "score": 90,
+        "explanation": "You have no logistics-AI exposure in your current portfolio - this fills a strategic gap"
+      }
+    ],
+    "what_you_contribute": "Beyond capital, you bring domain credibility, a potential pilot customer base, and distribution access across DACH mid-market logistics operators."
+  },
+  "diligence_status": [
+    { "item": "Product demo and technical review", "status": "verified", "note": "Reviewed by Kreuzberg technical partner" },
+    { "item": "Customer reference calls (3 of 5)", "status": "verified", "note": "Strong NPS, confirmed efficiency gains of 15-22%" },
+    { "item": "Customer reference calls (remaining 2)", "status": "pending", "note": "Scheduled for next week" },
+    { "item": "Financial model audit", "status": "verified", "note": "Unit economics confirmed by independent review" },
+    { "item": "IP and patent review", "status": "verified", "note": "3 patents filed, no conflicts identified" },
+    { "item": "Founder background checks", "status": "verified", "note": "Clean" },
+    { "item": "Competitive landscape analysis", "status": "verified", "note": "No direct mid-market competitor in DACH" },
+    { "item": "Sales pipeline validation", "status": "pending", "note": "Awaiting CRM data export" },
+    { "item": "Carrier/partner integration depth", "status": "flagged", "note": "Integration with 2 of 5 target TMS platforms confirmed; remaining 3 in progress" },
+    { "item": "Data privacy and GDPR compliance", "status": "pending", "note": "Review initiated, not yet complete" }
+  ],
+  "risks": [
+    {
+      "risk": "Efficiency claims may be overstated",
+      "severity": "medium",
+      "detail": "Lead's customer calls confirmed 15-22% gains, below the marketed 30%. Needs broader validation.",
+      "what_resolves_it": "Independent benchmarking across 5+ fleet sizes"
+    },
+    {
+      "risk": "Sales scalability unproven",
+      "severity": "high",
+      "detail": "All 18 customers acquired through founder-led sales. VP Sales joined 3 months ago. No outbound pipeline data yet.",
+      "what_resolves_it": "3-6 months of outbound sales data post-VP Sales hire"
+    },
+    {
+      "risk": "TMS integration dependency",
+      "severity": "medium",
+      "detail": "Product value depends on integrating with incumbent TMS. Only 2 of 5 target integrations are complete.",
+      "what_resolves_it": "Completion of top 3 TMS integrations before round close"
+    },
+    {
+      "risk": "Incumbent response",
+      "severity": "low",
+      "detail": "Oracle and SAP could add AI routing features. But their sales motion does not target mid-market, and enterprise product cycles are 18-24 months.",
+      "what_resolves_it": "Speed to market and customer lock-in through data network effects"
+    }
+  ]
+}
