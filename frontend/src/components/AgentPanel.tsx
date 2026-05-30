@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { askAgent, createTicket } from '../api'
 import type { AskResponse, TicketCreateResponse } from '../types'
+import { VoiceCall } from './VoiceCall'
+
+type Tab = 'chat' | 'voice'
 
 type TicketState =
   | { status: 'idle' }
@@ -19,6 +22,7 @@ const SUGGESTED = [
 ]
 
 export function AgentPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [tab, setTab] = useState<Tab>('chat')
   const [items, setItems] = useState<ChatItem[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -105,6 +109,25 @@ export function AgentPanel({ open, onClose }: { open: boolean; onClose: () => vo
           </button>
         </header>
 
+        <div className="flex gap-1 border-b border-edge px-3 py-2">
+          {(['chat', 'voice'] as Tab[]).map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setTab(t)}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
+                tab === t ? 'bg-brand text-white' : 'text-slate-400 hover:bg-card'
+              }`}
+            >
+              {t === 'chat' ? 'Chat' : 'Voice Call'}
+            </button>
+          ))}
+        </div>
+
+        {tab === 'voice' ? (
+          <VoiceCall onAskAnother={() => setTab('chat')} />
+        ) : (
+          <>
         <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
           {items.length === 0 && !loading && (
             <div className="text-sm text-slate-400">
@@ -167,6 +190,8 @@ export function AgentPanel({ open, onClose }: { open: boolean; onClose: () => vo
             Send
           </button>
         </form>
+          </>
+        )}
       </aside>
     </>
   )
