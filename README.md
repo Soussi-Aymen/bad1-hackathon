@@ -45,9 +45,19 @@ docker compose up --build --force-recreate
 
 ## Architecture
 
-![DealBridge system architecture](./docs/images/system-architecture.jpg)
-
 Browser ⇄ FastAPI ⇄ Claude Opus 4.7. Hardcoded JSON + in-memory state on the backend. Voice runs entirely in the browser via Web Speech APIs — no extra services, no extra API keys.
+
+**Overview**
+
+<p align="center">
+  <img src="./docs/images/system-architecture.jpg" alt="DealBridge system architecture — overview" width="900" />
+</p>
+
+**Detailed view (with API surface)**
+
+<p align="center">
+  <img src="./docs/images/system-architecture-detailed.jpg" alt="DealBridge system architecture — detailed" width="900" />
+</p>
 
 ## Stack
 
