@@ -37,7 +37,7 @@ Cut for the 2h30 window:
 - Expert validation flow (`POST /validation`) — defer.
 - AI-triggered domain-expert question — defer.
 - Portfolio diversification meter — defer.
-- Docker Compose — skip, run `uvicorn` + `vite` locally.
+- ~~Docker Compose — skip~~ → **Added after the backend was done.** `docker compose up --build` from the repo root boots both services. Manual `uvicorn` + `vite` paths still documented in the README for dev who don't want Docker.
 - Multiple full deal details — only `routepilot` has full data; the other two cards on the dashboard are decorative.
 
 Naming: **RoutePilot AI**, lead **Kreuzberg Seed Partners**, investor **Klaus Richter / Richter Logistik GmbH**.

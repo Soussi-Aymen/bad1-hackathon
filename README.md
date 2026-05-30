@@ -4,12 +4,44 @@ Co-investment intelligence platform for strategic co-investors evaluating early-
 
 Hackathon MVP — built in a single 2h30 sprint. Full build plan: [`plan.md`](./plan.md).
 
+## Quick start — one command (Docker Compose)
+
+```bash
+docker compose up --build
+```
+
+That builds and starts both services with hot reload:
+
+- Backend (FastAPI) on http://localhost:8000 — Swagger UI at `/docs`
+- Frontend (Vite + React) on http://localhost:5173
+
+Before the first run, create `backend/.env` from the template and add your Anthropic API key:
+
+```bash
+cp backend/.env.example backend/.env
+# then edit backend/.env and set ANTHROPIC_API_KEY=sk-ant-...
+```
+
+Stop everything:
+
+```bash
+docker compose down
+```
+
+Rebuild after dependency changes:
+
+```bash
+docker compose up --build --force-recreate
+```
+
 ## Stack
 
 - **Backend:** Python 3.11+, FastAPI, Anthropic SDK (Claude Opus 4.7). Hardcoded JSON + in-memory state. No database.
-- **Frontend:** React + Vite + TypeScript + Tailwind. (Built in parallel — see `plan.md` §5.)
+- **Frontend:** React 19 + Vite 8 + TypeScript + Tailwind 4 + pnpm.
 
-## Run the backend locally
+## Alternative ways to run
+
+### Run the backend alone (no Docker)
 
 ```powershell
 cd backend
@@ -19,11 +51,45 @@ copy .env.example .env   # then put your ANTHROPIC_API_KEY in .env
 .\.venv\Scripts\python.exe -m uvicorn main:app --reload --port 8000
 ```
 
-Server runs on `http://localhost:8000`. Swagger UI at `/docs`. Health check at `/health`.
+Linux/macOS equivalent:
 
-CORS is open to `http://localhost:5173` (Vite default).
+```bash
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env   # then edit .env
+uvicorn main:app --reload --port 8000
+```
 
-### Environment
+### Run the frontend alone (no Docker)
+
+```bash
+cd frontend
+pnpm install
+pnpm run dev
+```
+
+Vite serves on http://localhost:5173 by default.
+
+### Run only one service in Docker
+
+```bash
+docker compose up --build backend
+docker compose up --build frontend
+```
+
+### Build a single image manually
+
+```bash
+docker build -t dealbridge-backend ./backend
+docker run --rm -p 8000:8000 --env-file ./backend/.env dealbridge-backend
+
+docker build -t dealbridge-frontend ./frontend
+docker run --rm -p 5173:5173 dealbridge-frontend
+```
+
+## Environment
 
 `backend/.env` (gitignored):
 
@@ -66,33 +132,38 @@ When `status = "answered"`, `sources` is non-empty and `ticket_suggestion` is `n
 
 ## Smoke test
 
-With the server running and a valid key in `.env`:
+With the server running and a valid key in `backend/.env`:
 
 ```powershell
 cd backend
 powershell -ExecutionPolicy Bypass -File .\smoke_test.ps1
 ```
 
-Hits all 9 endpoints in demo order and prints status of each.
+Hits all 9 endpoints in demo order and prints the status of each.
 
 ## Repository layout
 
 ```
 .
+├── docker-compose.yml       Boot both services with one command
 ├── backend/
+│   ├── Dockerfile
 │   ├── main.py              FastAPI app + all endpoints
 │   ├── data/                Hardcoded JSON fixtures
 │   ├── requirements.txt
 │   ├── smoke_test.ps1
 │   └── .env.example
-├── frontend/                (built in parallel)
+├── frontend/
+│   ├── Dockerfile
+│   ├── package.json
+│   ├── vite.config.ts
+│   └── src/
 └── plan.md                  Frozen build plan
 ```
 
 ## What is intentionally NOT in this MVP
 
 - No database (hardcoded JSON, in-memory state for the demo session).
-- No Docker / docker-compose (saves ~30 min of setup).
 - No LangChain / LangGraph (single-turn Q&A against one packet — direct SDK call is simpler).
 - No expert-validation flow, portfolio meter, or VC syndication analytics (deferred to post-hackathon).
 
