@@ -1,0 +1,15 @@
+{
+  "id": "inv_001",
+  "name": "Klaus Richter",
+  "company": "Richter Logistik GmbH",
+  "role": "Managing Director",
+  "sector_expertise": ["logistics", "supply_chain", "warehousing"],
+  "ticket_range": { "min": 50000, "max": 250000 },
+  "strategic_assets": [
+    "Last-mile delivery network across DACH",
+    "200+ warehouse partnerships",
+    "20 years in freight operations"
+  ],
+  "portfolio_count": 1,
+  "portfolio_target": 8
+}

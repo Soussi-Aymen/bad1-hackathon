@@ -1,0 +1,54 @@
+{
+  "deals": [
+    {
+      "id": "routepilot",
+      "masked_name": "RoutePilot AI",
+      "one_liner": "AI-powered route optimisation for mid-market logistics companies",
+      "sector_tags": ["logistics", "AI", "SaaS"],
+      "stage": "Seed",
+      "round_size": 2400000,
+      "allocation_available": 400000,
+      "lead_investor": "Kreuzberg Seed Partners",
+      "dd_completion": 82,
+      "fit_score": 94,
+      "fit_reason": "Surfaced because you understand last-mile logistics and could open distribution channels across DACH",
+      "days_remaining": 12,
+      "pending_tickets": 1
+    },
+    {
+      "id": "packflow",
+      "masked_name": "PackFlow",
+      "one_liner": "Warehouse workflow automation for e-commerce fulfilment",
+      "sector_tags": ["warehousing", "automation", "e-commerce"],
+      "stage": "Pre-Seed",
+      "round_size": 1200000,
+      "allocation_available": 200000,
+      "lead_investor": "Cherry Ventures",
+      "dd_completion": 65,
+      "fit_score": 78,
+      "fit_reason": "Matched to your warehousing network - you could validate their throughput claims",
+      "days_remaining": 21,
+      "pending_tickets": 0
+    },
+    {
+      "id": "freightledger",
+      "masked_name": "FreightLedger",
+      "one_liner": "Digital freight brokerage platform for SME shippers",
+      "sector_tags": ["freight", "marketplace", "fintech"],
+      "stage": "Seed",
+      "round_size": 3000000,
+      "allocation_available": 500000,
+      "lead_investor": "HV Capital",
+      "dd_completion": 91,
+      "fit_score": 71,
+      "fit_reason": "Aligned with your freight operations experience - potential customer-investor fit",
+      "days_remaining": 8,
+      "pending_tickets": 0
+    }
+  ],
+  "portfolio_status": {
+    "current_positions": 1,
+    "recommended_minimum": 8,
+    "message": "You've backed 1 of a suggested 8+ deals to balance early-stage risk"
+  }
+}
