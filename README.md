@@ -45,7 +45,7 @@ docker compose up --build --force-recreate
 
 ## Architecture
 
-Browser ⇄ FastAPI ⇄ Claude Opus 4.7. Hardcoded JSON + in-memory state on the backend. Voice runs entirely in the browser via Web Speech APIs — no extra services, no extra API keys.
+Browser ⇄ FastAPI ⇄ LangChain-Anthropic agent (Claude Opus 4.8). Hardcoded JSON + in-memory state on the backend. Voice runs entirely in the browser via Web Speech APIs — no extra services, no extra API keys.
 
 **Overview**
 
@@ -61,7 +61,7 @@ Browser ⇄ FastAPI ⇄ Claude Opus 4.7. Hardcoded JSON + in-memory state on the
 
 ## Stack
 
-- **Backend:** Python 3.11+, FastAPI, Anthropic SDK (Claude Opus 4.7). Hardcoded JSON + in-memory state. No database.
+- **Backend:** Python 3.11+, FastAPI, LangChain-Anthropic + Claude Opus 4.8. Hardcoded JSON + in-memory state. No database.
 - **Frontend:** React 19 + Vite 8 + TypeScript + Tailwind 4 + pnpm.
 
 ## Alternative ways to run
@@ -143,7 +143,8 @@ All deal-scoped endpoints accept `deal_id = "routepilot"`. Any other id returns 
 | GET | `/api/investor` | Hardcoded co-investor persona |
 | GET | `/api/deals` | List of 2–3 deal cards |
 | GET | `/api/deals/{id}` | Full deal detail |
-| POST | `/api/deals/{id}/ask` | Text agent Q&A → `answered` or `missing_answer` |
+| POST | `/api/deals/{id}/ask` | Agent Q&A with memory → `answered` or `missing_answer` |
+| DELETE | `/api/deals/{id}/conversation` | Reset agent conversation history |
 | POST | `/api/deals/{id}/ticket` | Create VC clarification ticket |
 | GET | `/api/deals/{id}/tickets` | List tickets for a deal |
 | POST | `/api/deals/{id}/voice-call` | Simulated Voice AI call summary |
@@ -162,7 +163,7 @@ All deal-scoped endpoints accept `deal_id = "routepilot"`. Any other id returns 
 }
 ```
 
-When `status = "answered"`, `sources` is non-empty and `ticket_suggestion` is `null`. When `status = "missing_answer"`, `sources` is empty and `ticket_suggestion` is set. The agent will never give investment advice or expose raw VC files.
+When `status = "answered"`, `sources` is non-empty and `ticket_suggestion` is `null`. When `status = "missing_answer"`, `sources` is empty and `ticket_suggestion` is set. The agent maintains conversation history per deal session and will never give investment advice or expose raw VC files.
 
 ## Smoke test
 
@@ -198,7 +199,7 @@ Hits all 9 endpoints in demo order and prints the status of each.
 ## What is intentionally NOT in this MVP
 
 - No database (hardcoded JSON, in-memory state for the demo session).
-- No LangChain / LangGraph (single-turn Q&A against one packet — direct SDK call is simpler).
+- No LangGraph (single-tool-choice agent is sufficient — no multi-step reasoning loop needed).
 - No expert-validation flow, portfolio meter, or VC syndication analytics (deferred to post-hackathon).
 
 Reasoning in [`plan.md`](./plan.md) §1 and §2.

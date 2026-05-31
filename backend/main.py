@@ -2,31 +2,34 @@ import json
 import os
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
+from typing import Literal, Optional
 
-from anthropic import Anthropic
+from langchain_anthropic import ChatAnthropic
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from langchain_core.tools import tool
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
 load_dotenv()
 
-CLAUDE_MODEL = "claude-opus-4-7"
-_anthropic_client: Optional[Anthropic] = None
+CLAUDE_MODEL = "claude-opus-4-8"
+_agent = None
 
 
-def get_anthropic() -> Anthropic:
-    global _anthropic_client
-    if _anthropic_client is None:
+def get_agent() -> ChatAnthropic:
+    global _agent
+    if _agent is None:
         api_key = os.environ.get("ANTHROPIC_API_KEY")
         if not api_key:
             raise HTTPException(
                 status_code=503,
                 detail="ANTHROPIC_API_KEY not configured on the backend.",
             )
-        _anthropic_client = Anthropic(api_key=api_key)
-    return _anthropic_client
+        llm = ChatAnthropic(model=CLAUDE_MODEL, api_key=api_key, max_tokens=1024, timeout=30.0)
+        _agent = llm.bind_tools(AGENT_TOOLS, tool_choice="any")
+    return _agent
 
 DATA_DIR = Path(__file__).parent / "data"
 
@@ -34,6 +37,43 @@ DATA_DIR = Path(__file__).parent / "data"
 def load_json(name: str):
     with open(DATA_DIR / name, "r", encoding="utf-8") as f:
         return json.load(f)
+
+
+# ── Agent tools ────────────────────────────────────────────────────────────────
+
+class _Source(BaseModel):
+    label: str = Field(description="Short human label for the source")
+    section: str = Field(description="Key from the diligence packet (e.g. 'traction', 'risks')")
+
+class _ProvideAnswerInput(BaseModel):
+    answer: str = Field(description="Plain-text answer grounded in the diligence packet")
+    sources: list[_Source] = Field(description="Packet sections that support the answer")
+    next_actions: list[Literal["ask_follow_up", "start_voice_call", "create_ticket", "request_intro", "decline"]] = Field(
+        description="Suggested next steps for the investor"
+    )
+
+class _EscalateInput(BaseModel):
+    explanation: str = Field(description="Why the packet does not cover this question")
+    ticket_question: str = Field(description="One-line question to raise as a VC clarification ticket")
+    category: str = Field(description="Short tag, e.g. 'concentration_risk', 'sales_pipeline'")
+
+
+@tool("provide_answer", args_schema=_ProvideAnswerInput)
+def provide_answer(answer: str, sources: list[_Source], next_actions: list[str]) -> str:
+    """Use when the approved diligence packet contains enough information to answer the investor's question."""
+    return "answered"
+
+
+@tool("escalate_question", args_schema=_EscalateInput)
+def escalate_question(explanation: str, ticket_question: str, category: str) -> str:
+    """Use when the question cannot be answered from the packet. Surfaces a clarification ticket to the lead investor."""
+    return "escalated"
+
+
+AGENT_TOOLS = [provide_answer, escalate_question]
+
+# Per-deal conversation history (HumanMessage / AIMessage pairs).
+CONVERSATIONS: dict[str, list] = {}
 
 
 app = FastAPI(title="DealBridge Berlin API", version="0.1.0")
@@ -192,28 +232,10 @@ Hard rules:
 1. Answer ONLY from the diligence packet. If something is not in the packet, do not guess.
 2. NEVER provide investment advice. Never say "you should invest", "this is a good deal", \
    "I recommend", or anything similar. You present information; the investor decides.
-3. NEVER expose raw VC files or pretend to provide full source documents. You summarise \
-   approved content only.
-4. Identify the section(s) of the packet that support your answer (e.g. "traction", \
-   "lead_thesis", "risks", "diligence_status").
-5. If the question is outside the packet, suggest a clarification ticket to the lead \
-   instead of guessing.
-
-Output format. Respond with a SINGLE JSON object and nothing else. No markdown, no \
-backticks, no commentary outside the JSON. The schema is:
-
-{{
-  "status": "answered" | "missing_answer",
-  "answer": "<plain text answer or the not-covered explanation>",
-  "sources": [
-    {{ "label": "<short human label>", "section": "<key from the packet>" }}
-  ],
-  "ticket_suggestion": {{ "question": "<one-line follow-up>", "category": "<short tag>" }} or null,
-  "next_actions": ["ask_follow_up" | "start_voice_call" | "create_ticket" | "request_intro" | "decline"]
-}}
-
-When status is "answered", sources MUST be non-empty and ticket_suggestion MUST be null.
-When status is "missing_answer", sources MUST be empty and ticket_suggestion MUST be set.
+3. NEVER expose raw VC files. You summarise approved content only.
+4. You have memory of the current conversation — you can reference what the investor already asked.
+5. For every question, call exactly one tool: `provide_answer` if the packet covers it, \
+   `escalate_question` if it does not.
 
 APPROVED DILIGENCE PACKET (JSON):
 {packet}
@@ -225,58 +247,6 @@ def build_system_prompt() -> str:
     return SYSTEM_PROMPT_TEMPLATE.format(packet=json.dumps(packet, indent=2))
 
 
-def parse_agent_response(raw: str) -> dict:
-    """Parse Claude's JSON response. Fall back to a safe missing_answer shape."""
-    text = raw.strip()
-    # Defensive: strip markdown fences if Claude wrapped anyway.
-    if text.startswith("```"):
-        text = text.strip("`")
-        if text.lower().startswith("json"):
-            text = text[4:]
-        text = text.strip()
-    try:
-        data = json.loads(text)
-    except json.JSONDecodeError:
-        return {
-            "status": "missing_answer",
-            "answer": "The agent could not produce a structured answer for this question. You can raise it as a ticket to the lead instead.",
-            "sources": [],
-            "ticket_suggestion": {
-                "question": "Please clarify the question the co-investor asked.",
-                "category": "general",
-            },
-            "next_actions": ["create_ticket", "ask_follow_up"],
-        }
-
-    status = data.get("status")
-    if status not in ("answered", "missing_answer"):
-        status = "missing_answer"
-    answer = data.get("answer") or "Not covered in the approved diligence packet."
-    sources = data.get("sources") or []
-    ticket_suggestion = data.get("ticket_suggestion")
-    next_actions = data.get("next_actions") or []
-    if status == "answered":
-        ticket_suggestion = None
-        if not next_actions:
-            next_actions = ["ask_follow_up", "start_voice_call", "request_intro"]
-    else:
-        sources = []
-        if not ticket_suggestion:
-            ticket_suggestion = {
-                "question": "Please follow up with the lead on this question.",
-                "category": "general",
-            }
-        if not next_actions:
-            next_actions = ["create_ticket", "ask_follow_up", "start_voice_call"]
-    return {
-        "status": status,
-        "answer": answer,
-        "sources": sources,
-        "ticket_suggestion": ticket_suggestion,
-        "next_actions": next_actions,
-    }
-
-
 class AskRequest(BaseModel):
     message: str
 
@@ -284,31 +254,57 @@ class AskRequest(BaseModel):
 @app.post("/api/deals/{deal_id}/ask")
 def ask_agent(deal_id: str, body: AskRequest):
     assert_routepilot(deal_id)
-    client = get_anthropic()
+    agent = get_agent()
     system_prompt = build_system_prompt()
-    try:
-        message = client.messages.create(
-            model=CLAUDE_MODEL,
-            max_tokens=700,
-            system=system_prompt,
-            messages=[{"role": "user", "content": body.message}],
-            timeout=30.0,
-        )
-    except Exception as exc:
-        raise HTTPException(status_code=502, detail=f"Claude call failed: {exc}")
 
-    raw_text = "".join(
-        block.text for block in message.content if getattr(block, "type", None) == "text"
-    )
-    result = parse_agent_response(raw_text)
-    ASKED_QUESTIONS.append(
-        {
-            "question": body.message,
-            "status": result["status"],
-            "asked_at": now_iso(),
+    history = CONVERSATIONS.setdefault(deal_id, [])
+    history.append(HumanMessage(content=body.message))
+
+    try:
+        response = agent.invoke([SystemMessage(content=system_prompt)] + history)
+    except Exception as exc:
+        history.pop()
+        raise HTTPException(status_code=502, detail=f"Agent call failed: {exc}")
+
+    tool_calls = getattr(response, "tool_calls", [])
+    if not tool_calls:
+        history.pop()
+        raise HTTPException(status_code=502, detail="Agent returned no tool call.")
+
+    tc = tool_calls[0]
+    name, args = tc["name"], tc["args"]
+
+    if name == "provide_answer":
+        history.append(AIMessage(content=f"Based on the diligence packet: {args['answer']}"))
+        result = {
+            "status": "answered",
+            "answer": args["answer"],
+            "sources": [s if isinstance(s, dict) else s.dict() for s in args.get("sources", [])],
+            "ticket_suggestion": None,
+            "next_actions": args.get("next_actions", ["ask_follow_up", "start_voice_call", "request_intro"]),
         }
-    )
+    else:  # escalate_question
+        history.append(AIMessage(content=f"Not in the packet. {args.get('explanation', '')} Suggested ticket: {args.get('ticket_question', '')}"))
+        result = {
+            "status": "missing_answer",
+            "answer": args["explanation"],
+            "sources": [],
+            "ticket_suggestion": {
+                "question": args["ticket_question"],
+                "category": args.get("category", "general"),
+            },
+            "next_actions": ["create_ticket", "ask_follow_up", "start_voice_call"],
+        }
+
+    ASKED_QUESTIONS.append({"question": body.message, "status": result["status"], "asked_at": now_iso()})
     return result
+
+
+@app.delete("/api/deals/{deal_id}/conversation")
+def reset_conversation(deal_id: str):
+    assert_routepilot(deal_id)
+    CONVERSATIONS.pop(deal_id, None)
+    return {"status": "reset"}
 
 
 @app.get("/api/lead-view/{deal_id}")
